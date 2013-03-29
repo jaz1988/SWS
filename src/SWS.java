@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 //Testing
 //Stay Well System
@@ -9,6 +11,7 @@ public class SWS {
 	
 	private static Clinic _clinic;
 	
+	
 	//Constructor;
 	public SWS()
 	{
@@ -16,12 +19,51 @@ public class SWS {
 	}
 	
 	//********************************************************************Main Menu************************************************************************//
+	private static void displaySelectUser()
+	{
+		//Add access control logic here
+		System.out.println("Stay Well System");
+		System.out.println("Select user: ");
+		System.out.println("1. Doctor");
+		System.out.println("2. Nurse");
+		
+		//Get choice form user
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int option = 0;
+		try 
+		{
+			option = Integer.parseInt(br.readLine());
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		switch(option)
+		{
+			case 1: 
+				//Doctor's menu
+				displayConsDoc();
+				break;
+			case 2: 
+				//Nurse's menu
+				displayMain();
+				break;
+			
+			default: 
+				System.out.println("Choose from option 1-2");
+				break;
+			
+		}
+
+	}
+	
 	private static void displayMain()
 	{
 		System.out.println("Stay Well System");
-		System.out.println("1. Patient Records");
-		System.out.println("2. Consultation Records");
-		System.out.println("3. Medicine Records");
+		System.out.println("1. Patient");
+		System.out.println("2. Consultation");
+		System.out.println("3. Medicine");
+		System.out.println("0. Go Back");
 		
 		getUserChoice();
 	}
@@ -33,6 +75,10 @@ public class SWS {
 		try 
 		{
 			option = Integer.parseInt(br.readLine());
+			if(option == 0)
+			{
+				displaySelectUser();
+			}
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
@@ -322,10 +368,306 @@ public class SWS {
 		}
 	}
 	
-	//********************************************************************Consultation Menu************************************************************************//
+	//********************************************************************Consultation Menu (Nurse)************************************************************************//
 	private static void displayCons()
 	{
-		System.out.println("Consultation Records");
+		System.out.println("Consultation");
+		System.out.println("1. Register patient for consultation");
+		System.out.println("2. Cancel patient's consultation");
+		System.out.println("3. Check patient's queue number");
+		System.out.println("4. Check current queue number");
+		System.out.println("0. Go Back");
+		
+		//Get choice form user
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int option = 0;
+		try 
+		{
+			option = Integer.parseInt(br.readLine());	
+			if(option == 0)
+			{
+				//Go back to main page
+				displayMain();
+			}
+			switch(option)
+			{
+				case 1: 
+					//Register patient for consultation
+					//Prompt for patient's NRIC
+					System.out.println("Please enter patient's NRIC:");
+					String NRIC = br.readLine();
+					
+					//If returned value == -1, patient record does not exist, prompt to register patient first
+					//Else queue number of patient will be returned
+					int exist = _clinic.registerForConsultation(NRIC);
+					
+					if(exist == -1)
+					{
+						//Patient record does not exist
+						System.out.println("Patient not found in patient records, please register for the patient first");
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					else
+					{
+						System.out.println("Patient registered for consultation successfully. Queue number is: " + exist);
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					break;
+				case 2: 
+					//Cancel patient's consultation
+					System.out.println("Please enter patient's NRIC:");
+					NRIC = br.readLine();
+					
+					exist = _clinic.cancelConsultation(NRIC);
+					if(exist == -2)
+					{
+						//Patient not registered in any consultation
+						System.out.println("Patient is not registered for any consultation.");
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					else if(exist == -1)
+					{
+						//Patient record does not exist
+						System.out.println("Patient not found in patient records, please register for the patient first");
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					else
+					{
+						System.out.println("Patient consultation successfully cancelled.");
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					break;
+				
+				case 3:
+					//Check patient's queue number
+					System.out.println("Please enter patient's NRIC:");
+					NRIC = br.readLine();
+					
+					exist = _clinic.getPatQueue(NRIC);
+					if(exist == -1)
+					{
+						//Patient not registered in any consultation
+						System.out.println("Patient is not registered for any consultation.");
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					else
+					{
+						//Display queue number for the patient
+						System.out.println("Queue number for patient is: " + exist);
+						
+						//Go back to consultation page
+						displayCons();
+					}
+					break;
+					
+				case 4:
+					//Display current queue number
+					exist = _clinic.getClinicQueue();
+					
+					System.out.println("Current Queue number: " + exist);
+					
+					//Go back to consultation page
+					displayCons();
+					break;
+					
+				default: 
+					System.out.println("Choose from option 1-2");
+					//Go back to consultation page
+					displayCons();
+					break;
+				
+			}
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	//********************************************************************Consultation Menu (Doctor)************************************************************************//
+	private static void displayConsDoc()
+	{
+		System.out.println("1: View next patient's record");
+		System.out.println("0: Go back");
+		
+		//Get choice from user
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int option = 0;
+		try 
+		{
+			option = Integer.parseInt(br.readLine());	
+			
+			if(option == 0)
+			{
+				//Go back to main page
+				displayMain();
+			}
+			
+			switch(option)
+			{
+				case 1:
+					//Display current patient in queue's record
+					displayConsPat();
+					break;
+				default: 
+					System.out.println("Choose from option 0-1");
+					//Go back to consultation page
+					displayConsDoc();
+					break;
+					
+			}
+			
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
+	private static void displayConsPat()
+	{
+		//If there are no patients in Queue
+		if(_clinic.getClinicQueue() == 0)
+		{
+			System.out.println("There are no patients currently queuing for consultation.");
+			displayConsDoc();
+		}
+		
+		System.out.println("1: View all consultation records");
+		System.out.println("2: Enter illness description");
+		System.out.println("3: Enter medicine prescription");
+		System.out.println("0: Go back");
+		
+		//Get choice from user
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int option = 0;
+		try 
+		{
+			option = Integer.parseInt(br.readLine());	
+			
+			if(option == 0)
+			{
+				//Go back to main page
+				displayMain();
+			}
+			
+			//Get the patient from Q
+			Patient pat = _clinic.getPatientInQ();
+			
+			switch(option)
+			{
+				case 1:
+					//View all consultation records
+					List<Consultation> consList = _clinic.getConsultationRecords(pat);
+					Consultation cons;
+					
+					//Display all the records
+					for(int i = 0; i < consList.size(); i++)
+					{
+						cons = consList.get(i);
+						System.out.println("Date: " + cons.getDate());
+						System.out.println("Illness description: " + cons.getIllnessDes());
+						System.out.println("Medicine prescribed: ");
+						
+						//List of medicine prescribed
+						List<Medicine> medicineList = cons.getPrescription();
+						for(int j = 0; j < medicineList.size(); j++)
+						{
+							System.out.println( medicineList.get(j).getName() + ", " +  medicineList.get(j).getType() );
+						}						
+					}
+					
+					break;
+					
+				case 2: 
+					//Enter illness description
+					System.out.println("Please enter patient's illness description: ");
+					String desc = br.readLine();
+					
+					//Set the description to patient's consultation records
+					_clinic.setIllnessDesc(pat, desc);
+					
+					break;
+					
+				case 3:
+					//Enter medicine prescription
+					System.out.println("Please choose the medicine to prescribe for the patient: ");
+					
+					//Display all the medicines on screen and let the doctor choose for prescription
+					displayMedicine(pat, null);
+					break;
+					
+				default: 
+					System.out.println("Choose from option 0-3");
+					//Go back to consultation page
+					displayConsPat();
+					break;
+					
+			}
+			
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void displayMedicine(Patient pat, List<Medicine> medChosen)
+	{
+		List<Medicine> medList;
+		if(medChosen == null)
+			medChosen = new ArrayList<Medicine>();
+		
+		System.out.print("Medicine chosen: ");
+		for(int i = 0; i < medChosen.size(); i++ )
+		{
+			System.out.print(medChosen.get(i).getName());
+			System.out.print(", ");
+		}
+		
+		//Get all the medicines available
+		medList = _clinic.getMedicineList();
+		System.out.println();
+		for(int i = 0; i < medList.size(); i++ )
+		{
+			System.out.println(Integer.toString(i+1) + ": " + medList.get(i).getName());
+		}
+		System.out.println("0: Go back");
+		
+		//Get the input from doctor
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		try
+		{
+			int choice = Integer.parseInt(br.readLine());
+			
+			//If user choose to go back
+			if(choice == 0)
+			{
+				_clinic.setMedPres(pat, medList);
+				displayConsPat();
+			}
+			
+			//Add to medicine chosen list
+			medChosen.add(medList.get(choice-1));
+			displayMedicine(pat, medChosen);
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		
 	}
 	
 	//********************************************************************Medicine Menu************************************************************************//
@@ -338,7 +680,7 @@ public class SWS {
 	public static void main(String args[])
 	{
 		SWS sws = new SWS();
-		sws.displayMain();		
+		sws.displaySelectUser();	
 
 	}
 	

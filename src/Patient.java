@@ -14,10 +14,9 @@ public class Patient {
 	private List<Consultation> cons_records; //Consultation records of this patient
 	
 	//Constructor
-	public Patient Patient()
+	public Patient()
 	{
 		cons_records = new ArrayList<Consultation>();
-		return this;
 	}
 
 	//Create new patient record
@@ -38,9 +37,9 @@ public class Patient {
 		return cons_records;
 	}
 	
-	public void setConsRecords(List<Consultation> cons_records)
+	public void AddConsRecords(Consultation cons_records)
 	{
-		this.cons_records = cons_records;
+		this.cons_records.add(cons_records);
 	}
 	
 	//Accessors to get patients' particulars.
