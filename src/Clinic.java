@@ -1,6 +1,9 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -9,6 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //This class will management all the data in-flow and out-flow
 public class Clinic {
@@ -16,15 +21,13 @@ public class Clinic {
 	private List<Patient> patient_records; //All patient records
 	private List<Medicine> medicine_records; //All medicine records
 	
-	private Queue<Patient> queue; //Queue for patients
+	private Queue<Patient> queue; //Queue for patients consultation
+	private Queue<Patient> dispense_med_q; //Queue for dispensing medicince for patients
 
 	private int current_Q; //Current Queue in clinic
 	
 	private int Q_size; //Total Queue size in clinic
-	
-	private String current_date; //Current date
-	
-	private Patient current_patient;
+
 	
 	//Constructor will populate the patient and medicine records
 	public Clinic()
@@ -34,43 +37,67 @@ public class Clinic {
 		
 		//Mock data
 		Medicine med = new Medicine();
-		med.insertNewMedicine("A", "Panadol", "pill", 99);
+		med.insertNewMedicine("A", "Panadol", "pill", 5);
 		medicine_records.add(med);
 		
 		med = new Medicine();
-		med.insertNewMedicine("A", "Panadol 2", "liquid", 99);
+		med.insertNewMedicine("A", "Panadol 2", "liquid", 5);
 		medicine_records.add(med);
 		
 		queue = new LinkedList<Patient>();
+		dispense_med_q = new LinkedList<Patient>();
+		
 		current_Q = 0;
 		Q_size = 0;
+		
+		populate_data();
 	}
 	
 	
 	//Populate the patient and medicine records
 	private void populate_data()
-	{
+	{		
 		try
 		{
+			String name, DOB, address, gender, NRIC;
+			int hp;
+			Patient pat;
 			//Load from text file
 			//Patient records
 			FileReader file = new FileReader("patients.txt");
 			BufferedReader br = new BufferedReader (file);
 			
 			//Reading from the text file
-			String line = br.readLine();
-	        while (line != null) {
-	            line = br.readLine();
-	            //Do something
-	        }
+			int count = Integer.parseInt(br.readLine());
+			br.readLine();
 			
-			//Medicine records
-			file = new FileReader("medicines.txt");
-			br = new BufferedReader (file);
+	        for(int i = 0; i < count; i++)
+	        {
+	        	name = br.readLine();
+	            DOB = br.readLine();
+	            address = br.readLine();
+	            hp = Integer.parseInt(br.readLine());
+	            gender = br.readLine();
+	            NRIC = br.readLine();
+	            br.readLine();
+	            
+	            pat = new Patient();
+	            pat.createPat(name, DOB, address, hp, gender, NRIC);
+	            
+	            patient_records.add(pat);
+	          
+	        } 
+	        
+	        		
+//			//Medicine records
+//			file = new FileReader("medicines.txt");
+//			br = new BufferedReader (file);
+//			
+//			//Consultation records
+//			file = new FileReader("consultations.txt");
+//			br = new BufferedReader (file);
 			
-			//Consultation records
-			file = new FileReader("consultations.txt");
-			br = new BufferedReader (file);
+			br.close();
 		}
 		catch(Exception ex)
 		{
@@ -78,6 +105,8 @@ public class Clinic {
 		}
 	
 	}
+	
+	
 	
 	//********************************************************************Patient-related functions************************************************************************//
 	//Registering a new patient
@@ -154,10 +183,9 @@ public class Clinic {
 			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 			Date date = new Date();
 			String string_date = dateFormat.format(date);
-			current_date = string_date;
 			 
 			Consultation cons = new Consultation();
-			cons.createCR(string_date, null, null, NRIC); //Since patient has not seen the doctor, prescription and illness description is null
+			cons.createCR(string_date, "", null, NRIC); //Since patient has not seen the doctor, prescription and illness description is null
 			 
 			//Add record to patient 
 			pat.AddConsRecords(cons);
@@ -230,14 +258,20 @@ public class Clinic {
 	//Get current queue number in clinic
 	public int getClinicQueue()
 	{
+		return current_Q;
+	}
+	
+	//Get the total Queue size on clinic
+	public int getTotalQ()
+	{
 		return Q_size;
 	}
 	
-	//Set current patient
-	public Boolean setCurrentPatient()
+	//Increase the current Q count
+	//Can be modified to skip patient 
+	public void addCurrentQ()
 	{
-		this.current_patient = queue.poll();
-		return true;
+		current_Q++;
 	}
 	
 	//Get patient in Queue
@@ -281,5 +315,237 @@ public class Clinic {
 		cons.SetMedList(medList);
 		return true;
 	}
+	
+	//Add the patient to the queue for dispense of medicine
+	public Boolean insertMedDispense(Patient pat)
+	{
+		//Add the patient to the queue for dispense of medicine
+		dispense_med_q.add(pat);
+		return true;
+	}
+	
+	//Dispense medicine functions for nurse
+	public Patient dispenseMed()
+	{
+		Medicine patMed, med;
+		//Check the medicine dispense queue
+		if(dispense_med_q.size() == 0)
+		{
+			//no patient need dispense of medicine yet
+			return null;
+		}
+		else
+		{
+			//Get the patient from the dispense med queue
+			Patient pat = dispense_med_q.poll();
+			
+			//Get latest consultation record for patient
+			List<Consultation> consList = pat.getConsRecords();
+			Consultation cons = consList.get(consList.size()-1);
+			
+			//Dispense medicine for patient and update the stock of the medicine accordingly
+			//Retrieve the medicine prescribed for patient
+			List<Medicine> medList = cons.getPrescription();
+			
+			//Find the medicine from the master Medicine List at the clinic to update the stock
+			for(int i = 0; i < medList.size(); i++)
+			{
+				patMed = medList.get(i);
+				//For every medicine prescribed, look through all the records to find the medicine 
+				for(int j = 0; j < medicine_records.size(); j++)
+				{
+					med = medicine_records.get(j);
+					if(patMed.getName().equalsIgnoreCase(med.getName()))
+					{
+						//Decrease the stock
+						//Assume dispense of medicine decrease stock by 1 for every medicine prescribed
+						med.setStock(med.getStock()-1);
+						break;
+					}
+				}
+			}
+			//Return medicine list prescribed for patient
+			return pat;
+		}
+	}
+	
+	//********************************************************************Medicine-related functions************************************************************************//
+	//Add new type of medicine 
+	public Boolean addNewMedicine(String supplier, String name, String type, int stock)
+	{
+		//Create new medicine object
+		Medicine med = new Medicine();
+		
+		//Insert the information
+		med.insertNewMedicine(supplier, name, type, stock);
+		
+		//Add to the medicine_records in clinic
+		medicine_records.add(med);
+		
+		return true;
+	}
+	
+	//Restock medicine
+	public Boolean restockMed(Medicine restockMed, int quantity)
+	{
+		Medicine med;
+		//Find the medicine from the master Medicine List at the clinic to update the stock
+
+		//For every medicine prescribed, look through all the records to find the medicine 
+		for(int j = 0; j < medicine_records.size(); j++)
+		{
+			med = medicine_records.get(j);
+			if(restockMed.getName().equalsIgnoreCase(med.getName()))
+			{
+				//Increase the stock
+				med.setStock(med.getStock()+quantity);
+				break;
+			}
+		}
+		
+		
+		//Update medicine.txt
+		
+		
+		return true;
+	}
+	
+	//Check for any medicine that are low on stock
+	//Assume when stock is < 10, its considered low
+	public List<Medicine> checkLowStockMed()
+	{
+		Medicine med;
+		List<Medicine> restockMedList = new ArrayList<Medicine>();
+		
+		//Iterate through every medicine and check its stock
+		for(int j = 0; j < medicine_records.size(); j++)
+		{
+			med = medicine_records.get(j);
+			if(med.getStock() < 10)
+			{
+				//Add to return medicine list
+				restockMedList.add(med);
+			}
+		}
+		
+		return restockMedList;
+	}
+	
+	//********************************************************************Search-related functions************************************************************************//
+	//Search for a particular word that exist in Illness Description under patient's consultation records
+	public List<Patient> searchIllnessDes(String word)
+	{
+		String regexp = "\\b" + word + "\\b";
+		Pattern p = Pattern.compile(regexp);
+		
+		String sentence;
+		Matcher m;
+		
+		//Temp list 
+		List<Patient> patList = new ArrayList<Patient>();
+		Patient pat;
+		List<Consultation> consList;
+		List<Consultation> consListNew = new ArrayList<Consultation>();
+		Consultation cons;
+		
+		//Search through all the patient records
+		for(int i = 0; i < patient_records.size(); i++)
+		{
+			pat = patient_records.get(i);
+					
+			//Get all the consultation records of this patient
+			consList = pat.getConsRecords();
+			
+			//pat.clearConsRecords();
+			
+			//Get the illness description and check against every consultation
+			for(int j = 0; j < consList.size(); j++)
+			{
+				cons = consList.get(j);
+				sentence = cons.getIllnessDes();
+				
+				//Check against the regexp word
+				m = p.matcher(sentence);
+				if(m.find())
+				{
+					//Matched, add to temp patient list
+					patList.add(pat);
+					
+					//Add the found consultation records in this new Patient object 
+					//This will filter out the consultation records that does not contain the word in this Patient record
+					//pat.AddConsRecords(cons);
+					break;
+					
+				}
+			}
+		}
+		
+		return patList;
+	}
+	
+	//Search for a particular word that exist in prescription under patient's consultation records
+	public List<Patient> searchPrescription(String word)
+	{
+		Boolean check = false;
+		String regexp = "\\b" + word + "\\b";
+		Pattern p = Pattern.compile(regexp);
+		
+		String sentence;
+		Matcher m;
+		
+		//Temp list 
+		List<Patient> patList = new ArrayList<Patient>();
+		Patient pat;
+		List<Consultation> consList;
+		Consultation cons;
+		List<Medicine> medList;
+		Medicine med;
+		
+		//Search through all the patient records
+		for(int i = 0; i < patient_records.size(); i++)
+		{
+			pat = patient_records.get(i);
+						
+			//Get all the consultation records of this patient
+			consList = pat.getConsRecords();
+			
+			//pat.clearConsRecords();
+			
+			//Get the illness description and check against every consultation
+			for(int j = 0; j < consList.size(); j++)
+			{
+				cons = consList.get(j);
+				
+				//Get the medicine prescription
+				medList = cons.getPrescription();
+							
+				for(int k = 0; k < medList.size(); k++)
+				{
+					med = medList.get(k);
+					sentence = med.getName();
+					
+					//Check against the regexp word
+					m = p.matcher(sentence);
+					if(m.find())
+					{
+						//Matched, add to temp patient list
+						patList.add(pat);
+						check = true;
+						//Add the found consultation records in this new Patient object 
+						//This will filter out the consultation records that does not contain the word in this Patient record
+						//pat.AddConsRecords(cons);
+						break;
+						
+					}
+				}
+			if(check) break;
+			}
+		}
+		
+		return patList;
+	}
+
+	
+	
 
 }

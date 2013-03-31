@@ -42,6 +42,11 @@ public class Patient {
 		this.cons_records.add(cons_records);
 	}
 	
+	public void clearConsRecords()
+	{
+		this.cons_records.clear();	
+	}
+	
 	//Accessors to get patients' particulars.
 	public String getName()
 	{
