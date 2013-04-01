@@ -1,0 +1,9 @@
+ABC pte ltd
+Panadol
+Pill
+100
+
+BCD pte ltd
+Cough syrup
+Liquid
+5

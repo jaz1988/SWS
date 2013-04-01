@@ -35,14 +35,14 @@ public class Clinic {
 		patient_records = new ArrayList<Patient>();
 		medicine_records = new ArrayList<Medicine>();
 		
-		//Mock data
-		Medicine med = new Medicine();
-		med.insertNewMedicine("A", "Panadol", "pill", 5);
-		medicine_records.add(med);
-		
-		med = new Medicine();
-		med.insertNewMedicine("A", "Panadol 2", "liquid", 5);
-		medicine_records.add(med);
+//		//Mock data
+//		Medicine med = new Medicine();
+//		med.insertNewMedicine("A", "Panadol", "pill", 5);
+//		medicine_records.add(med);
+//		
+//		med = new Medicine();
+//		med.insertNewMedicine("A", "Panadol 2", "liquid", 5);
+//		medicine_records.add(med);
 		
 		queue = new LinkedList<Patient>();
 		dispense_med_q = new LinkedList<Patient>();
@@ -59,8 +59,8 @@ public class Clinic {
 	{		
 		try
 		{
-			String name, DOB, address, gender, NRIC;
-			int hp;
+			String name = null, DOB = null, address = null, gender = null, NRIC = null;
+			int hp = 0;
 			Patient pat;
 			//Load from text file
 			//Patient records
@@ -68,33 +68,89 @@ public class Clinic {
 			BufferedReader br = new BufferedReader (file);
 			
 			//Reading from the text file
-			int count = Integer.parseInt(br.readLine());
-			br.readLine();
-			
-	        for(int i = 0; i < count; i++)
+	        String line;
+	        int count = 0;
+	        while((line = br.readLine()) != null)
 	        {
-	        	name = br.readLine();
-	            DOB = br.readLine();
-	            address = br.readLine();
-	            hp = Integer.parseInt(br.readLine());
-	            gender = br.readLine();
-	            NRIC = br.readLine();
-	            br.readLine();
-	            
-	            pat = new Patient();
-	            pat.createPat(name, DOB, address, hp, gender, NRIC);
-	            
-	            patient_records.add(pat);
-	          
-	        } 
-	        
+	        	System.out.println(line);
+	        	if(count == 0)
+	        		name = line;
+	        	else if(count == 1)
+	        		DOB = line;
+	        	else if(count == 2)
+	        		address = line;
+	        	else if(count == 3)
+	        		hp = Integer.parseInt(line);
+	        	else if(count == 4)
+	        		gender = line;
+	        	else if(count == 5)
+	        	{
+	        		NRIC = line;
 	        		
-//			//Medicine records
-//			file = new FileReader("medicines.txt");
-//			br = new BufferedReader (file);
+	        		//Insert information into patient records
+	        		pat = new Patient();
+		            pat.createPat(name, DOB, address, hp, gender, NRIC);
+		            
+		            patient_records.add(pat);
+	        	}
+	        	else if(count == 6)
+	        	{
+	        		//Blank space
+	        			        		
+	        	}
+	        	count++;
+	        	if(count == 7)
+	        	{
+	        		//Reset to 0
+	        		count = 0;
+	        	}
+	        	
+	        }
+	        		
+			//Medicine records
+			file = new FileReader("medicine.txt");
+			br = new BufferedReader (file);
+			
+			//Reading from the text file	
+			String supplier = null, type = null;
+			Medicine med;
+			int stock = 0;
+	        count = 0;
+	        while((line = br.readLine()) != null)
+	        {
+	        	System.out.println(line);
+	        	if(count == 0)
+	        		supplier = line;
+	        	else if(count == 1)
+	        		name = line;
+	        	else if(count == 2)
+	        		type = line;
+	        	else if(count == 3)
+	        	{
+	        		stock = Integer.parseInt(line);
+	        		
+	        		//Insert new medicine
+	        		med = new Medicine();
+	        		med.insertNewMedicine(supplier, name, type, stock);
+	        		medicine_records.add(med);
+	        		
+	        	}	       	        	
+	        	else if(count == 4)
+	        	{
+	        		//Blank space
+	        			        		
+	        	}
+	        	count++;
+	        	if(count == 5)
+	        	{
+	        		//Reset to 0
+	        		count = 0;
+	        	}
+	        	
+	        }
 //			
 //			//Consultation records
-//			file = new FileReader("consultations.txt");
+//			file = new FileReader("consultation.txt");
 //			br = new BufferedReader (file);
 			
 			br.close();
