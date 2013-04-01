@@ -403,24 +403,28 @@ public class SWS {
 					//Modify name
 					pat.setName(newValue);
 					System.out.println("Name modified successfully!");
+					_clinic.modifyPatRecords(pat, pat.getName(), pat.getDOB(), pat.getAddress(), pat.getHp(), pat.getGender(), pat.getNRIC());
 					getModifiedValues(pat);
 					break;
 				case 2: 
 					//Modify NRIC
 					pat.setNRIC(newValue);
 					System.out.println("NRIC modified successfully!");
+					_clinic.modifyPatRecords(pat, pat.getName(), pat.getDOB(), pat.getAddress(), pat.getHp(), pat.getGender(), pat.getNRIC());
 					getModifiedValues(pat);
 					break;
 				case 3: 
 					//Modify DOB
 					pat.setDOB(newValue);
 					System.out.println("DOB modified successfully!");
+					_clinic.modifyPatRecords(pat, pat.getName(), pat.getDOB(), pat.getAddress(), pat.getHp(), pat.getGender(), pat.getNRIC());
 					getModifiedValues(pat);
 					break;
 				case 4: 
 					//Modify Address
 					pat.setAddress(newValue);
 					System.out.println("Address modified successfully!");
+					_clinic.modifyPatRecords(pat, pat.getName(), pat.getDOB(), pat.getAddress(), pat.getHp(), pat.getGender(), pat.getNRIC());
 					getModifiedValues(pat);
 					break;
 				case 5: 
@@ -436,6 +440,7 @@ public class SWS {
 						{
 							pat.setHP(Integer.parseInt(hpString));
 							System.out.println("Handphone number modified successfully!");
+							_clinic.modifyPatRecords(pat, pat.getName(), pat.getDOB(), pat.getAddress(), pat.getHp(), pat.getGender(), pat.getNRIC());
 							getModifiedValues(pat);
 							break;
 						}
@@ -582,14 +587,15 @@ public class SWS {
 						System.out.println("Medicine prescribed: ");
 						
 						//List of medicine prescribed
-						List<Medicine> medicineList = cons.getPrescription();
+						List<String> medicineList = cons.getPrescription();
 						if(medicineList!=null)
 						{
 							for(int j = 0; j < medicineList.size(); j++)
 							{
-								System.out.println(Integer.toString(j + 1) + ". " +  medicineList.get(j).getName() + ", " +  medicineList.get(j).getType() );
+								System.out.println(Integer.toString(j + 1) + ". " +  medicineList.get(j));
 							}					
 						}
+						System.out.println();	
 					}
 					
 					//Go back to consultation page
@@ -640,12 +646,12 @@ public class SWS {
 					cons = consList.get(consList.size()-1);
 					
 					//Retrieve the medicine prescribed for patient
-					List<Medicine> medList = cons.getPrescription();
+					List<String> medList = cons.getPrescription();
 					
 					System.out.println("Medicine dispensed for patient " + pat.getName() + ", " + pat.getNRIC());
 					for(int i = 0; i < medList.size(); i++)
 					{
-						System.out.println(Integer.toString(i+1) + ". " + medList.get(i).getName());
+						System.out.println(Integer.toString(i+1) + ". " + medList.get(i));
 					}
 					
 					//Go back to consultation page
@@ -789,6 +795,9 @@ public class SWS {
 			
 			if(option == 0)
 			{
+				//Update the consultation.txt
+				_clinic.appendToConsultationTxt(pat);
+				
 				//Go back to main page
 				displayMainDoc();
 			}
@@ -812,14 +821,15 @@ public class SWS {
 						System.out.println("Medicine prescribed: ");
 						
 						//List of medicine prescribed
-						List<Medicine> medicineList = cons.getPrescription();
+						List<String> medicineList = cons.getPrescription();
 						if(medicineList!=null)
 						{
 							for(int j = 0; j < medicineList.size(); j++)
 							{
-								System.out.println(Integer.toString(j + 1) + ". " +  medicineList.get(j).getName() + ", " +  medicineList.get(j).getType() );
+								System.out.println(Integer.toString(j + 1) + ". " +  medicineList.get(j));
 							}					
 						}
+						System.out.println();					
 					}
 					displayConsPat(pat);
 					break;
@@ -861,16 +871,16 @@ public class SWS {
 		}
 	}
 	
-	private static void displayMedicine(Patient pat, List<Medicine> medChosen)
+	private static void displayMedicine(Patient pat, List<String> medChosen)
 	{
 		List<Medicine> medList;
 		if(medChosen == null)
-			medChosen = new ArrayList<Medicine>();
+			medChosen = new ArrayList<String>();
 		
 		System.out.print("Medicine chosen: ");
 		for(int i = 0; i < medChosen.size(); i++ )
 		{
-			System.out.print(medChosen.get(i).getName());
+			System.out.print(medChosen.get(i));
 			System.out.print(", ");
 		}
 		
@@ -893,7 +903,7 @@ public class SWS {
 			if(choice == 0)
 			{
 				//Set the medicine prescription in the consultation records of the patient
-				_clinic.setMedPres(pat, medList);
+				_clinic.setMedPres(pat, medChosen);
 				
 				//Add to dispense medicine queue so the nurse can prepare the medicine
 				_clinic.insertMedDispense(pat);
@@ -903,7 +913,7 @@ public class SWS {
 			}
 			
 			//Add to medicine chosen list
-			medChosen.add(medList.get(choice-1));
+			medChosen.add(medList.get(choice-1).getName());
 			displayMedicine(pat, medChosen);
 		} 
 		catch (IOException e) 
@@ -1176,12 +1186,12 @@ public class SWS {
 							System.out.println("Medicine prescribed: ");
 							
 							//List of medicine prescribed
-							List<Medicine> medicineList = cons.getPrescription();
+							List<String> medicineList = cons.getPrescription();
 							if(medicineList!=null)
 							{
 								for(int k = 0; k < medicineList.size(); k++)
 								{
-									System.out.println(Integer.toString(k + 1) + ". " +  medicineList.get(k).getName() + ", " +  medicineList.get(k).getType() );
+									System.out.println(Integer.toString(k + 1) + ". " +  medicineList.get(k));
 								}					
 							}
 							
@@ -1230,12 +1240,12 @@ public class SWS {
 							System.out.println("Medicine prescribed: ");
 							
 							//List of medicine prescribed
-							List<Medicine> medicineList = cons.getPrescription();
+							List<String> medicineList = cons.getPrescription();
 							if(medicineList!=null)
 							{
 								for(int k = 0; k < medicineList.size(); k++)
 								{
-									System.out.println(Integer.toString(k + 1) + ". " +  medicineList.get(k).getName() + ", " +  medicineList.get(k).getType() );
+									System.out.println(Integer.toString(k + 1) + ". " +  medicineList.get(k));
 								}					
 							}
 							

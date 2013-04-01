@@ -6,18 +6,18 @@ public class Consultation {
 	
 	private String date; //Date of the date of consultation session
 	private String illnessDescription; //Description of patient's illness
-	private List<Medicine> prescription; //Prescription will contain more than 1 type of medicine, hence a List would store all the medicine types.
+	private List<String> prescription; //Prescription will contain more than 1 type of medicine, hence a List would store all the medicine types.
 	private String NRIC; //NRIC is needed when backing up consultation records for the current patient.
 	private int Q_No; //Queue number of patient for this consultation session
 	
 	//Constructor
 	public Consultation()
 	{
-		prescription = new ArrayList<Medicine>();
+		prescription = new ArrayList<String>();
 	}
 	
 	//Create consultation record for 1 session
-	public Boolean createCR(String date, String description, List<Medicine> prescription, String NRIC)
+	public Boolean createCR(String date, String description, List<String> prescription, String NRIC)
 	{
 		this.date = date;
 		this.illnessDescription = description;
@@ -36,7 +36,7 @@ public class Consultation {
 		return this.illnessDescription;
 	}
 	
-	public List<Medicine> getPrescription()
+	public List<String> getPrescription()
 	{
 		return this.prescription;
 	}
@@ -66,12 +66,12 @@ public class Consultation {
 		this.Q_No = Q_No;
 	}
 	
-	public void addPrescription(Medicine medicine)
+	public void addPrescription(String medicine)
 	{
 		this.prescription.add(medicine);
 	}
 	
-	public void SetMedList(List<Medicine> medList)
+	public void SetMedList(List<String> medList)
 	{
 		this.prescription = medList;
 	}

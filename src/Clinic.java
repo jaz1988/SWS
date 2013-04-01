@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,18 +33,10 @@ public class Clinic {
 	//Constructor will populate the patient and medicine records
 	public Clinic()
 	{
+		//Initialization
 		patient_records = new ArrayList<Patient>();
 		medicine_records = new ArrayList<Medicine>();
-		
-//		//Mock data
-//		Medicine med = new Medicine();
-//		med.insertNewMedicine("A", "Panadol", "pill", 5);
-//		medicine_records.add(med);
-//		
-//		med = new Medicine();
-//		med.insertNewMedicine("A", "Panadol 2", "liquid", 5);
-//		medicine_records.add(med);
-		
+			
 		queue = new LinkedList<Patient>();
 		dispense_med_q = new LinkedList<Patient>();
 		
@@ -72,6 +65,10 @@ public class Clinic {
 	        int count = 0;
 	        while((line = br.readLine()) != null)
 	        {
+	        	//Ignore any blanks or newline when reading from the textfile
+	        	if(line == System.getProperty("line.separator") || line.equalsIgnoreCase(""))
+	        		continue;
+	        	
 	        	System.out.println(line);
 	        	if(count == 0)
 	        		name = line;
@@ -93,19 +90,16 @@ public class Clinic {
 		            
 		            patient_records.add(pat);
 	        	}
-	        	else if(count == 6)
-	        	{
-	        		//Blank space
-	        			        		
-	        	}
 	        	count++;
-	        	if(count == 7)
+	        	if(count == 6)
 	        	{
 	        		//Reset to 0
 	        		count = 0;
 	        	}
 	        	
 	        }
+	        file.close();
+	        br.close();
 	        		
 			//Medicine records
 			file = new FileReader("medicine.txt");
@@ -118,7 +112,10 @@ public class Clinic {
 	        count = 0;
 	        while((line = br.readLine()) != null)
 	        {
-	        	System.out.println(line);
+	        	if(line == System.getProperty("line.separator") || line.equalsIgnoreCase(""))
+	        		continue;
+	        	
+	        	//System.out.println(line);
 	        	if(count == 0)
 	        		supplier = line;
 	        	else if(count == 1)
@@ -134,25 +131,82 @@ public class Clinic {
 	        		med.insertNewMedicine(supplier, name, type, stock);
 	        		medicine_records.add(med);
 	        		
-	        	}	       	        	
-	        	else if(count == 4)
-	        	{
-	        		//Blank space
-	        			        		
-	        	}
+	        	}	       	        		        	
 	        	count++;
-	        	if(count == 5)
+	        	if(count == 4)
 	        	{
 	        		//Reset to 0
 	        		count = 0;
 	        	}
 	        	
 	        }
-//			
-//			//Consultation records
-//			file = new FileReader("consultation.txt");
-//			br = new BufferedReader (file);
+	        file.close();
+	        br.close();
+	       
+			//Consultation records
+			file = new FileReader("consultation.txt");
+			br = new BufferedReader (file);
 			
+			//Reading from the text file	
+			String date = null, description = null;
+			List<String> prescription = new ArrayList<String>();
+			String rawPres = null;
+			Consultation consList;
+			Consultation cons;
+			
+	        count = 0;
+	        while((line = br.readLine()) != null)
+	        {
+	        	if(line == System.getProperty("line.separator") || line.equalsIgnoreCase(""))
+	        		continue;
+	        	
+	        	//System.out.println(line);
+	        	if(count == 0)
+	        		//Date
+	        		date = line;
+	        	else if(count == 1)
+	        		//Illness description
+	        		description = line;
+	        	else if(count == 2)
+	        	{
+	        		//Prescription are read as Panadol,Cough Syrup
+	        		//Need to tokenize to remove ','
+	        		rawPres = line;
+	        		StringTokenizer st = new StringTokenizer(rawPres, ",");
+	        		prescription = new ArrayList<String>();
+	        		while(st.hasMoreTokens())
+	        		{
+	        			//One medicine
+	        			//Add into the prescription list	        			
+	        			prescription.add(st.nextToken()); 
+	        		}
+	        		
+	        	}
+	        	else if(count == 3)
+	        	{
+	        		//NRIC
+	        		NRIC = line;
+	        		
+	        		//Get patient record
+	        		pat = getPatRecord(NRIC);
+	        			        		
+	        		//Create new consultation and add to respective patient
+	        		cons = new Consultation();
+	        		cons.createCR(date, description, prescription, NRIC);
+	        		pat.AddConsRecords(cons);
+	        		        		
+	        		
+	        	}	       	        		        	
+	        	count++;
+	        	if(count == 4)
+	        	{
+	        		//Reset to 0
+	        		count = 0;
+	        	}
+	        	
+	        }
+			
+	        file.close();
 			br.close();
 		}
 		catch(Exception ex)
@@ -161,7 +215,6 @@ public class Clinic {
 		}
 	
 	}
-	
 	
 	
 	//********************************************************************Patient-related functions************************************************************************//
@@ -184,6 +237,7 @@ public class Clinic {
 		patient_records.add(pat);	
 		
 		//Update the patient.txt
+		appendToPatientTxt(pat);
 		return true;
 	}
 	
@@ -211,6 +265,99 @@ public class Clinic {
 		pat.setName(name);
 		pat.setHP(hp);
 		pat.setNRIC(NRIC);
+		
+		//update patients.txt
+		updatePatientTxt();
+		
+		return true;
+	}
+	
+	//Append new patient record to existing patients.txt
+	private Boolean appendToPatientTxt(Patient pat)
+	{
+		try 
+		{
+			//Notice the second parameter "true"
+			//This is needed to ensure the filewriter is in APPEND mode
+			FileWriter out = new FileWriter("patients.txt",true);
+			BufferedWriter bw = new BufferedWriter(out);
+			
+			//Write a newline first
+			bw.newLine();
+			bw.newLine();
+			
+			//Next, write all the information of the new patient		
+			bw.write(pat.getName());
+			bw.newLine();
+			bw.write(pat.getDOB());
+			bw.newLine();
+			bw.write(pat.getAddress());
+			bw.newLine();
+			bw.write(Integer.toString(pat.getHp()));
+			bw.newLine();
+			bw.write(pat.getGender());
+			bw.newLine();
+			bw.write(pat.getNRIC());
+			//bw.newLine();
+				
+			bw.close();
+			
+		} 
+		catch (IOException e) 
+		{		
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+	//Update patients.txt due to modifications
+	private Boolean updatePatientTxt()
+	{
+		try 
+		{
+			//Notice there is no second parameter in the filewriter
+			//This is needed to ensure the filewriter is in OVERWRITE mode
+			FileWriter out = new FileWriter("patients.txt");
+			BufferedWriter bw = new BufferedWriter(out);
+			Patient pat;
+			
+			for(int i = 0; i < patient_records.size(); i++)
+			{
+				//Get patient record
+				pat = patient_records.get(i);
+				
+				//Next, write all the information of the new patient		
+				bw.write(pat.getName());
+				bw.newLine();
+				bw.write(pat.getDOB());
+				bw.newLine();
+				bw.write(pat.getAddress());
+				bw.newLine();
+				bw.write(Integer.toString(pat.getHp()));
+				bw.newLine();
+				bw.write(pat.getGender());
+				bw.newLine();
+				bw.write(pat.getNRIC());
+				
+				//last element
+				if(i == patient_records.size()-1)
+				{
+					
+				}
+				else
+				{
+					bw.newLine();
+					bw.newLine();
+				}
+			}
+									
+			bw.close();
+			
+		} 
+		catch (IOException e) 
+		{		
+			e.printStackTrace();
+		}
 		return true;
 	}
 	
@@ -361,7 +508,7 @@ public class Clinic {
 	}
 	
 	//Insert the medcine prescription list to the patient's consultation records
-	public Boolean setMedPres(Patient pat, List<Medicine> medList)
+	public Boolean setMedPres(Patient pat, List<String> medList)
 	{
 		//Get latest consultation record for patient
 		List<Consultation> consList = pat.getConsRecords();
@@ -383,7 +530,8 @@ public class Clinic {
 	//Dispense medicine functions for nurse
 	public Patient dispenseMed()
 	{
-		Medicine patMed, med;
+		Medicine med;
+		String patMed;
 		//Check the medicine dispense queue
 		if(dispense_med_q.size() == 0)
 		{
@@ -401,7 +549,7 @@ public class Clinic {
 			
 			//Dispense medicine for patient and update the stock of the medicine accordingly
 			//Retrieve the medicine prescribed for patient
-			List<Medicine> medList = cons.getPrescription();
+			List<String> medList = cons.getPrescription();
 			
 			//Find the medicine from the master Medicine List at the clinic to update the stock
 			for(int i = 0; i < medList.size(); i++)
@@ -411,11 +559,14 @@ public class Clinic {
 				for(int j = 0; j < medicine_records.size(); j++)
 				{
 					med = medicine_records.get(j);
-					if(patMed.getName().equalsIgnoreCase(med.getName()))
+					if(patMed.equalsIgnoreCase(med.getName()))
 					{
 						//Decrease the stock
 						//Assume dispense of medicine decrease stock by 1 for every medicine prescribed
 						med.setStock(med.getStock()-1);
+						
+						//Update medicine.txt
+						updateMedicineTxt();
 						break;
 					}
 				}
@@ -423,6 +574,53 @@ public class Clinic {
 			//Return medicine list prescribed for patient
 			return pat;
 		}
+	}
+	
+	//Append new consultation record to consultation.txt
+	public Boolean appendToConsultationTxt(Patient pat)
+	{
+		//Get latest consultation record for patient
+		List<Consultation> consList = pat.getConsRecords();
+		Consultation cons = consList.get(consList.size()-1);
+		
+		try 
+		{
+			//Notice the second parameter "true"
+			//This is needed to ensure the filewriter is in APPEND mode
+			FileWriter out = new FileWriter("consultation.txt",true);
+			BufferedWriter bw = new BufferedWriter(out);
+			
+			//Write a newline first
+			bw.newLine();
+			bw.newLine();
+			
+			//Next, write all the information of the new patient		
+			bw.write(cons.getDate());
+			bw.newLine();
+			bw.write(cons.getIllnessDes());
+			bw.newLine();
+			
+			//Combine all the prescription together first
+			List<String> prescList = cons.getPrescription();
+			String presc = "";
+			for(int i = 0; i < prescList.size(); i++)
+			{
+				presc += prescList.get(i);
+				presc += ",";
+			}			
+			bw.write(presc);
+			bw.newLine();
+			bw.write(cons.getNRIC());
+			//bw.newLine();
+			
+			bw.close();
+			
+		} 
+		catch (IOException e) 
+		{		
+			e.printStackTrace();
+		}
+		return true;
 	}
 	
 	//********************************************************************Medicine-related functions************************************************************************//
@@ -437,6 +635,9 @@ public class Clinic {
 		
 		//Add to the medicine_records in clinic
 		medicine_records.add(med);
+		
+		//Update medicine.txt
+		appendToMedicineTxt(med);
 		
 		return true;
 	}
@@ -455,6 +656,9 @@ public class Clinic {
 			{
 				//Increase the stock
 				med.setStock(med.getStock()+quantity);
+				
+				//Update medicine.txt
+				updateMedicineTxt();
 				break;
 			}
 		}
@@ -485,6 +689,88 @@ public class Clinic {
 		}
 		
 		return restockMedList;
+	}
+	
+	//Append new consultation record to consultation.txt
+	private Boolean appendToMedicineTxt(Medicine med)
+	{
+		
+		try 
+		{
+			//Notice the second parameter "true"
+			//This is needed to ensure the filewriter is in APPEND mode
+			FileWriter out = new FileWriter("medicine.txt",true);
+			BufferedWriter bw = new BufferedWriter(out);
+			
+			//Write a newline first
+			bw.newLine();
+			bw.newLine();
+			
+			//Next, write all the information of the new patient		
+			bw.write(med.getSupplier());
+			bw.newLine();
+			bw.write(med.getName());
+			bw.newLine();			
+			bw.write(med.getType());
+			bw.newLine();
+			bw.write(Integer.toString(med.getStock()));
+			//bw.newLine();
+			
+			bw.close();
+			
+		} 
+		catch (IOException e) 
+		{		
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+	//Update medicine.txt due to modifications
+	private Boolean updateMedicineTxt()
+	{
+		try 
+		{
+			//Notice there is no second parameter in the filewriter
+			//This is needed to ensure the filewriter is in OVERWRITE mode
+			FileWriter out = new FileWriter("medicine.txt");
+			BufferedWriter bw = new BufferedWriter(out);
+			Medicine med;
+			
+			for(int i = 0; i < medicine_records.size(); i++)
+			{
+				//Get medicine record
+				med = medicine_records.get(i);
+				
+				//Next, write all the information of the medicine
+				bw.write(med.getSupplier());
+				bw.newLine();
+				bw.write(med.getName());
+				bw.newLine();
+				bw.write(med.getType());
+				bw.newLine();
+				bw.write(Integer.toString(med.getStock()));
+				
+				//last element
+				if(i == medicine_records.size()-1)
+				{
+					
+				}
+				else
+				{
+					bw.newLine();
+					bw.newLine();
+				}
+			}
+									
+			bw.close();
+			
+		} 
+		catch (IOException e) 
+		{		
+			e.printStackTrace();
+		}
+		return true;
 	}
 	
 	//********************************************************************Search-related functions************************************************************************//
@@ -554,8 +840,8 @@ public class Clinic {
 		Patient pat;
 		List<Consultation> consList;
 		Consultation cons;
-		List<Medicine> medList;
-		Medicine med;
+		List<String> medList;
+		String med;
 		
 		//Search through all the patient records
 		for(int i = 0; i < patient_records.size(); i++)
@@ -578,7 +864,7 @@ public class Clinic {
 				for(int k = 0; k < medList.size(); k++)
 				{
 					med = medList.get(k);
-					sentence = med.getName();
+					sentence = med;
 					
 					//Check against the regexp word
 					m = p.matcher(sentence);

@@ -1,0 +1,14 @@
+05/06/13
+Mild fever
+Panadol,Cough syrup
+S8818507B
+
+2013/04/02
+Flu
+Cough syrup,Panadol,
+S8818507B
+
+2013/04/02
+HEADACHE
+Cough syrup,
+S8818507B
