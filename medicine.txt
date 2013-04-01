@@ -6,4 +6,9 @@ Pill
 BCD pte ltd
 Cough syrup
 Liquid
-5
+6
+
+zzz
+A
+pill
+100
