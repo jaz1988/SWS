@@ -1,14 +1,94 @@
-ABC pte ltd
+ASTRA ZENECA PTE LTD
 Panadol
 Pill
 100
 
-BCD pte ltd
+JOHNSON & JOHNSON
 Cough syrup
 Liquid
 6
 
-zzz
-A
+PFIZER PTE LTD
+Amoxicillin
 pill
+100
+
+ROCHE PTE LTE
+Panadol
+PILL
+20
+
+NOVARTIS
+Prospan Cough Syrup
+LIQUID
+5
+
+SANOFI PTE LTE
+Amoxicillin
+PILL
+0
+
+MERCK & cO
+Aspirin
+PILL
+100
+
+ELI LILY PTE LTD
+Meclizine
+PILL
+80
+
+BRISTOL MYERS PTE LTD
+acetaminophen
+PILL
+30
+
+ROCHE PTE LTE
+chlorpheniramine
+PILL
+20
+
+JOHNSON & JOHNSON
+Beclomethasone
+Liquid
+6
+
+PFIZER PTE LTD
+phenylephrine
+pill
+100
+
+ASTRA ZENECA PTE LTD
+Budesonide
+Pill
+100
+
+JOHNSON & JOHNSON
+Fluticasone
+Liquid
+6
+
+PFIZER PTE LTD
+Prednisolone
+pill
+100
+
+ROCHE PTE LTE
+Dexamethasone
+PILL
+20
+
+NOVARTIS
+Vitamin B1-Thiamine
+LIQUID
+5
+
+SANOFI PTE LTE
+Vitamin B6-Pyridoxine
+PILL
+0
+
+MERCK & cO
+Vitamin B12-Cobalamin
+PILL
 100

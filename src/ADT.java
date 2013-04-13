@@ -1,21 +1,114 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.StringTokenizer;
 
 //Testing
 //Stay Well System
 //This system will manage all the user interactions as well as back-end operations
-public class SWS {
+public class ADT {
 	
 	private static Clinic _clinic;
-	
+	List<ADT_var> adt_list;
+	String cur_name, cur_input, cur_output;
+	Queue<Integer> cur_options_q;
 	
 	//Constructor;
-	public SWS()
+	public ADT()
 	{
 		_clinic = new Clinic();
+		adt_list = new ArrayList<ADT_var>();
+		
+		//Read from adt.txt
+		FileReader file;
+		try 
+		{
+			file = new FileReader("adt.txt");
+			BufferedReader br = new BufferedReader (file);
+			
+			//Reading from the text file
+	        String line, testName = null, options = null, input = null, output = null;
+	        Queue<Integer> options_Q;
+	        
+	        ADT_var var;
+	        
+	        int count = 0;
+	        while((line = br.readLine()) != null)
+	        {
+	        	//Ignore any blanks or newline when reading from the textfile
+	        	if(line == System.getProperty("line.separator") || line.equalsIgnoreCase(""))
+	        		continue;
+	        	
+	        	//System.out.println(line);
+	        	if(count == 0)
+	        		testName = line;
+	        	else if(count == 1)
+	        		options = line;
+	        	else if(count == 2)
+	        		input = line;		        	
+	        	else if(count == 3)
+	        	{
+	        		output = line;
+	        		
+	        		var = new ADT_var();
+	        		var.name = testName;
+	        		
+	        		//Tokenize options
+	        		options_Q = new LinkedList<Integer>();
+	        		StringTokenizer st = new StringTokenizer(options, ";");	        		
+	        		while(st.hasMoreTokens())
+	        		{        	
+	        			//add to options queue
+	        			options_Q.add(Integer.parseInt(st.nextToken())); 
+	        		}
+	        		
+	        		var.options_Q = options_Q;
+	        		var.input = input;
+	        		var.output = output;
+	        		
+	        		adt_list.add(var);
+	        		
+	        	}
+	        	count++;
+	        	if(count == 4)
+	        	{
+	        		//Reset to 0
+	        		count = 0;
+	        	}
+	        	
+	        }
+	        file.close();
+	        br.close();
+	        
+	        //Execute adt test cases according to adt_list
+	        for(int i = 0; i < adt_list.size(); i++)
+	        {
+	        	var = adt_list.get(i);
+	        	cur_name = var.name;
+	        	cur_options_q = var.options_Q;
+	        	cur_input = var.input;
+	        	cur_output = var.output;
+	        	
+	        	displaySelectUser();
+	        }
+		} 
+		catch (FileNotFoundException e) 
+		{			
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	//Check if a string is an integer
@@ -1280,8 +1373,8 @@ public class SWS {
 	//********************************************************************Main************************************************************************//
 	public static void main(String args[])
 	{
-		SWS sws = new SWS();
-		sws.displaySelectUser();	
+		ADT adt = new ADT();
+		adt.displaySelectUser();	
 
 	}
 	

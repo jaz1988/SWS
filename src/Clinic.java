@@ -69,7 +69,7 @@ public class Clinic {
 	        	if(line == System.getProperty("line.separator") || line.equalsIgnoreCase(""))
 	        		continue;
 	        	
-	        	System.out.println(line);
+	        	//System.out.println(line);
 	        	if(count == 0)
 	        		name = line;
 	        	else if(count == 1)

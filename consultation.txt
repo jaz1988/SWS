@@ -1,14 +1,49 @@
-05/06/13
-Mild fever
-Panadol,Cough syrup
-S8818507B
+2000/01/04
+Fever
+Panadol,Prospan Cough Syrup
+S6974052B
 
-2013/04/02
-Flu
-Cough syrup,Panadol,
-S8818507B
+2001/02/02
+Colds and Flu
+Prospan Cough Syrup
+S6902382G
 
-2013/04/02
-HEADACHE
-Cough syrup,
-S8818507B
+2002/03/12
+HEADACHE, FEVER
+Panadol
+S7603541E
+
+2003/03/30
+STOMACH ACHE
+Panadol
+G7758701U 
+
+2004/04/28
+Urinary Tract Infection
+Amoxicillin
+S6901418H
+
+2005/05/18
+High Blood Pressure
+Aspirin
+S7745384E
+
+2006/06/19
+COUGH, FLU
+acetaminophen,chlorpheniramine,phenylephrine
+S6603629J
+
+2007/07/15
+Nausea,Vomiting
+Meclizine
+S6688671H
+
+2008/08/01
+Asthma
+Inhaled:Beclomethasone,Budesonide,Fluticasone,Oral:Prednisolone,Dexamethasone
+G7060523l
+
+2009/09/13
+Diabetes
+Vitamin B1-Thiamine,Vitamin B6-Pyridoxine,Vitamin B12-Cobalamin,
+G7969010X
