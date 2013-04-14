@@ -11,7 +11,7 @@ Liquid
 PFIZER PTE LTD
 Amoxicillin
 pill
-99
+100
 
 ROCHE PTE LTE
 Panadol
@@ -92,11 +92,6 @@ MERCK & cO
 Vitamin B12-Cobalamin
 PILL
 100
-
-ASTRA ZENECA PTE LTD
-Panadol2
-Pill
-99
 
 ASTRA ZENECA PTE LTD
 Panadol2

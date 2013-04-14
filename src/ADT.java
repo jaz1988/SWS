@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -15,17 +17,24 @@ import java.util.StringTokenizer;
 public class ADT {
 	
 	private static Clinic _clinic;
-	List<ADT_var> adt_list;
-	String cur_name, cur_input, cur_output;
-	Queue<Integer> cur_options_q;
+	private static List<ADT_var> adt_list; //Contains all the test cases information
+	private static String cur_name, cur_output; //current test case name and expected output executed
+	private static Queue<Integer> cur_options_q; //All options path stored in this q
+	private static Queue<String> cur_input_q; //All inputs required stored in this q
+	private static String identifier; //Identifier to recognize variables if needed
+	private static String cur_results; //Results to be written to text file adt_results.txt
+	private static Boolean check; //Variable to check if needed
+	
 	
 	//Constructor;
 	public ADT()
 	{
+		check = true;
 		_clinic = new Clinic();
 		adt_list = new ArrayList<ADT_var>();
 		
 		//Read from adt.txt
+		//Populate all test cases to adt_list
 		FileReader file;
 		try 
 		{
@@ -35,6 +44,7 @@ public class ADT {
 			//Reading from the text file
 	        String line, testName = null, options = null, input = null, output = null;
 	        Queue<Integer> options_Q;
+	        Queue<String> input_Q;
 	        
 	        ADT_var var;
 	        
@@ -58,21 +68,45 @@ public class ADT {
 	        		
 	        		var = new ADT_var();
 	        		var.name = testName;
+	        		System.out.println("Name: " + var.name);
 	        		
 	        		//Tokenize options
 	        		options_Q = new LinkedList<Integer>();
-	        		StringTokenizer st = new StringTokenizer(options, ";");	        		
+	        		int option_int;
+	        		StringTokenizer st = new StringTokenizer(options, ";");	
+	        		System.out.print("Options: ");
 	        		while(st.hasMoreTokens())
 	        		{        	
 	        			//add to options queue
-	        			options_Q.add(Integer.parseInt(st.nextToken())); 
+	        			option_int = Integer.parseInt(st.nextToken());
+	        			System.out.print(option_int + "->");
+	        			options_Q.add(option_int); 
+	        			
 	        		}
+	        		System.out.println();
 	        		
+	        		//Tokenize input
+	        		input_Q = new LinkedList<String>();
+	        		String input_string;
+	        		st = new StringTokenizer(input, ";");	
+	        		System.out.print("Input: ");
+	        		while(st.hasMoreTokens())
+	        		{        	
+	        			//add to input queue
+	        			input_string = st.nextToken();
+	        			System.out.print(input_string + "->");
+	        			input_Q.add(input_string); 
+	        		}
+	        		System.out.println();
+	        		        		
 	        		var.options_Q = options_Q;
-	        		var.input = input;
+	        		var.input_Q = input_Q;
 	        		var.output = output;
+	        		System.out.println("Output: " + var.output);
 	        		
 	        		adt_list.add(var);
+	        		
+	        		
 	        		
 	        	}
 	        	count++;
@@ -92,7 +126,7 @@ public class ADT {
 	        	var = adt_list.get(i);
 	        	cur_name = var.name;
 	        	cur_options_q = var.options_Q;
-	        	cur_input = var.input;
+	        	cur_input_q = var.input_Q;
 	        	cur_output = var.output;
 	        	
 	        	displaySelectUser();
@@ -130,6 +164,7 @@ public class ADT {
 		  }
 	}
 	
+	
 	//********************************************************************Main Menu************************************************************************//
 	//Main menu to select type of user
 	private static void displaySelectUser()
@@ -148,16 +183,15 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());			
+			//option = Integer.parseInt(br.readLine());	
+			
+			//option are always taken from head of cur_options_q
+			option = cur_options_q.poll();
 		} 
 		catch (NumberFormatException ne)
 		{
 			System.err.println("Choose from option 1-2");
 			displaySelectUser();
-		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
 		}
 		
 		switch(option)
@@ -201,7 +235,10 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());
+			//option = Integer.parseInt(br.readLine());
+			
+			//option are always taken from head of cur_options_q
+			option = cur_options_q.poll();
 			if(option == 0)
 			{
 				displaySelectUser();
@@ -211,9 +248,6 @@ public class ADT {
 		{
 			System.err.println("Choose from option 0-4");
 			displayMainNurse();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
 		}
 		
 		switch(option)
@@ -254,15 +288,13 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());
+			//option = Integer.parseInt(br.readLine());
+			option = cur_options_q.poll();
 		} 
 		catch (NumberFormatException ne)
 		{
 			System.err.println("Choose from option 0-3");
 			displayPatient();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
 		}
 		
 		switch(option)
@@ -300,70 +332,71 @@ public class ADT {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		
-		try 
-		{			
-			String name, DOB, address, gender, NRIC;
-			int hp = 0;
-			
-			//Name
-			System.out.print("Name:");
-			name = br.readLine();
-			
-			//NRIC
-			System.out.print("NRIC:");
-			NRIC = br.readLine(); 
-			
-			//DOB
-			System.out.print("DOB:");
-			DOB = br.readLine(); 
-			
-			//Gender
-			System.out.print("Gender (M/F): ");
-			gender = br.readLine(); 
-			
-			//Address
-			System.out.print("Address:");
-			address = br.readLine(); 
-			
-			//Handphone number
-			String hpString = null;
-			do
+		String name, DOB, address, gender, NRIC;
+		int hp = 0;
+		
+		//Name
+		System.out.print("Name:");
+		//name = br.readLine();
+		name = cur_input_q.poll();
+		
+		//NRIC
+		System.out.print("NRIC:");
+		//NRIC = br.readLine();
+		NRIC = cur_input_q.poll();
+		
+		//DOB
+		System.out.print("DOB:");
+		//DOB = br.readLine(); 
+		DOB = cur_input_q.poll();
+		
+		//Gender
+		System.out.print("Gender (M/F): ");
+		//gender = br.readLine(); 
+		gender = cur_input_q.poll();
+		
+		//Address
+		System.out.print("Address:");
+		//address = br.readLine(); 
+		address = cur_input_q.poll();
+		
+		//Handphone number
+		String hpString = null;
+		do
+		{
+			System.out.print("Handphone number:");
+			//hpString = br.readLine();
+			hpString = cur_input_q.poll();
+			if(isInteger(hpString))
 			{
-				System.out.print("Handphone number:");
-				hpString = br.readLine();
-				if(isInteger(hpString))
-				{
-					hp = Integer.parseInt(hpString);
-					break;
-				}
-				else
-				{
-					System.err.println("Please enter only numbers");
-				}
-			} while(true);
-			
-			//Register the patient
-			Boolean result = _clinic.registerNewPatient(name, DOB, address, hp, gender, NRIC);
-			
-			if(result == true)
-			{
-				System.out.println("Patient registered successfully!");
-				
-				//Go back to patient page
-				displayPatient();
+				hp = Integer.parseInt(hpString);
+				break;
 			}
 			else
 			{
-				System.out.println("Registration failed, patient record already exist.");
-				
-				//Go back to patient page
-				displayPatient();
+				System.err.println("Please enter only numbers");
 			}
-			
-		} 
+		} while(true);
 		
-		catch (IOException e) {
-			e.printStackTrace();
+		//Register the patient
+		Boolean result = _clinic.registerNewPatient(name, DOB, address, hp, gender, NRIC);
+		
+		if(result == true)
+		{
+			System.out.println("Patient registered successfully!");
+			
+			//Go back to patient page
+			displayPatient();
+		}
+		else
+		{
+			System.out.println("Registration failed, patient record already exist.");
+			
+			cur_results = "Fail, patient record already exist";
+			appendFile();
+			
+			//Go back to patient page
+			//displayPatient();
 		}
 	}
 	
@@ -377,47 +410,62 @@ public class ADT {
 		System.out.println("Please enter patient's NRIC");
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		try 
+		String NRIC;
+		//Get NRIC from input
+		//NRIC = br.readLine();
+		NRIC = cur_input_q.poll();
+
+		//Get patient record
+		Patient pat = _clinic.getPatRecord(NRIC);
+					
+		//check if returned record is null
+		if(pat != null)
 		{
-			String NRIC;
-			//Get NRIC from input
-			NRIC = br.readLine();
-		
-			//Get patient record
-			Patient pat = _clinic.getPatRecord(NRIC);
-						
-			//check if returned record is null
-			if(pat != null)
+			//Display patient record
+			System.out.println("Name: " + pat.getName());
+			System.out.println("NRIC: " + pat.getNRIC());
+			System.out.println("DOB: " + pat.getDOB());
+			System.out.println("Gender: " + pat.getGender());
+			System.out.println("Address: " + pat.getAddress());
+			System.out.println("Handphone Number: " + pat.getHp());		
+			
+			if(cur_name.equalsIgnoreCase("Test case 3-1"))
 			{
-				//Display patient record
-				System.out.println("Name: " + pat.getName());
-				System.out.println("NRIC: " + pat.getNRIC());
-				System.out.println("DOB: " + pat.getDOB());
-				System.out.println("Gender: " + pat.getGender());
-				System.out.println("Address: " + pat.getAddress());
-				System.out.println("Handphone Number: " + pat.getHp());		
-				
-				//Enter 0 to go back
-				System.out.println("Enter 0 to go back");
-				
-				if(Integer.parseInt((br.readLine())) == 0)
+				//Check if DOB is modified
+				if(pat.getDOB().equalsIgnoreCase(cur_output))
 				{
-					//Go back to patient page
-					displayPatient();
+					cur_results = "Pass";
+					appendFile();
+				}
+				else
+				{
+					cur_results = "Fail, DOB modified wrongly";
+					appendFile();
 				}
 			}
 			else
 			{
-				System.out.println("Patient does not exist");
-				
-				//Go back to patient page
-				displayPatient();
+				cur_results = "Pass";
+				appendFile();
 			}
-						
-		
+			
+			//Enter 0 to go back
+//				System.out.println("Enter 0 to go back");
+			
+//				if(Integer.parseInt((br.readLine())) == 0)
+//				{
+//					//Go back to patient page
+//					displayPatient();
+//				}
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		else
+		{
+			System.out.println("Patient does not exist");
+			
+			cur_results = "Fail, patient does not exist in database";
+			appendFile();
+			//Go back to patient page
+			//displayPatient();
 		}
 	}
 	
@@ -431,32 +479,25 @@ public class ADT {
 		System.out.println("Please enter patient's NRIC");
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		try 
+		String NRIC;
+		//Get NRIC from input
+		//NRIC = br.readLine();
+		NRIC = cur_input_q.poll();
+
+		//Get patient record
+		Patient pat = _clinic.getPatRecord(NRIC);
+					
+		//check if returned record is null
+		if(pat != null)
 		{
-			String NRIC;
-			//Get NRIC from input
-			NRIC = br.readLine();
-		
-			//Get patient record
-			Patient pat = _clinic.getPatRecord(NRIC);
-						
-			//check if returned record is null
-			if(pat != null)
-			{
-				getModifiedValues(pat);							
-			}
-			else
-			{
-				System.out.println("Patient does not exist");
-				
-				//Go back to patient page
-				displayPatient();
-			}
-						
-		
+			getModifiedValues(pat);							
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		else
+		{
+			System.out.println("Patient does not exist");
+			
+			//Go back to patient page
+			displayPatient();
 		}
 	}
 	
@@ -480,7 +521,8 @@ public class ADT {
 			
 			//Get the option from user 
 			int option = 0;
-			option = Integer.parseInt(br.readLine());
+			//option = Integer.parseInt(br.readLine());
+			option = cur_options_q.poll();
 			
 			if(option == 0)
 			{
@@ -489,7 +531,8 @@ public class ADT {
 			}
 			
 			System.out.println("Please enter the new value here: ");
-			String newValue = br.readLine();
+			//String newValue = br.readLine();
+			String newValue = cur_input_q.poll();
 			switch(option)
 			{						
 				case 1: 	
@@ -511,7 +554,8 @@ public class ADT {
 					pat.setDOB(newValue);
 					System.out.println("DOB modified successfully!");
 					_clinic.modifyPatRecords(pat, pat.getName(), pat.getDOB(), pat.getAddress(), pat.getHp(), pat.getGender(), pat.getNRIC());
-					getModifiedValues(pat);
+					displayPatient();
+					//getModifiedValues(pat);
 					break;
 				case 4: 
 					//Modify Address
@@ -582,7 +626,8 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());	
+			//option = Integer.parseInt(br.readLine());
+			option = cur_options_q.poll();
 			if(option == 0)
 			{
 				//Go back to main page
@@ -594,7 +639,8 @@ public class ADT {
 					//Register patient for consultation
 					//Prompt for patient's NRIC
 					System.out.println("Please enter patient's NRIC:");
-					String NRIC = br.readLine();
+					//String NRIC = br.readLine();
+					String NRIC = cur_input_q.poll();
 					
 					//If returned value == -1, patient record does not exist, prompt to register patient first
 					//Else queue number of patient will be returned
@@ -606,14 +652,16 @@ public class ADT {
 						System.out.println("Patient not found in patient records, please register for the patient first");
 						
 						//Go back to consultation page
-						displayCons();
+						//displayCons();
+						displaySelectUser();
 					}
 					else
 					{
 						System.out.println("Patient registered for consultation successfully. Queue number is: " + exist);
 						
 						//Go back to consultation page
-						displayCons();
+						//displayCons();
+						displaySelectUser();
 					}
 					break;
 				case 2: 
@@ -734,6 +782,14 @@ public class ADT {
 					//Medicine list prescribed for patient is returned
 					pat = _clinic.dispenseMed();
 					
+					if(pat == null)
+					{
+						//no patient for dispense medicine
+						cur_results = "Fail, no patient are in Q for medicine dispense";
+						appendFile();
+						return;
+					}
+					
 					//Get latest consultation record for patient
 					consList = pat.getConsRecords();
 					cons = consList.get(consList.size()-1);
@@ -745,6 +801,12 @@ public class ADT {
 					for(int i = 0; i < medList.size(); i++)
 					{
 						System.out.println(Integer.toString(i+1) + ". " + medList.get(i));
+						if(medList.get(i).equalsIgnoreCase(cur_output))
+						{
+							cur_results = "Pass";
+							appendFile();
+							return;
+						}
 					}
 					
 					//Go back to consultation page
@@ -789,7 +851,8 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());	
+			//option = Integer.parseInt(br.readLine());	
+			option = cur_options_q.poll();
 			
 			if(option == 0)
 			{
@@ -804,15 +867,32 @@ public class ADT {
 					if(_clinic.getTotalQ() == 0)
 					{
 						System.out.println("There are no patients currently queuing for consultation.");
-						displayMainDoc();
+						//displayMainDoc();
+						cur_results = "Fail, patient is not registered for consultation";
+						appendFile();
+						return;
 					}
 					
 					//Get the patient from Q
 					Patient pat = _clinic.getPatientInQ();
 					
-					//Display current patient in queue's record
-					displayConsPat(pat);
-					break;
+					//If not in Q (Not registered for consultation)
+					if(pat == null)
+					{
+						cur_results = "Fail, patient is not registered for consultation";
+						appendFile();
+						return;
+					}
+					else
+					{
+						//Display current patient in queue's record
+						
+						cur_results = "Pass";
+						appendFile();
+						
+						displayConsPat(pat);
+						break;
+					}
 					
 //				case 2:
 //					//opening consultation records manually
@@ -844,9 +924,7 @@ public class ADT {
 			System.err.println("Choose from option 0-2");
 			displayMainDoc();
 		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
+		
 		
 		
 	}
@@ -884,7 +962,8 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());	
+			//option = Integer.parseInt(br.readLine());	
+			option = cur_options_q.poll();
 			
 			if(option == 0)
 			{
@@ -980,39 +1059,47 @@ public class ADT {
 		//Get all the medicines available
 		medList = _clinic.getMedicineList();
 		System.out.println();
+		int choice = 0;
+		String input = cur_input_q.poll();
 		for(int i = 0; i < medList.size(); i++ )
 		{
 			System.out.println(Integer.toString(i+1) + ": " + medList.get(i).getName());
+			if(medList.get(i).getName().equalsIgnoreCase(input))
+			{
+				System.out.println("Cough syrup matched");
+				choice = i+1;
+				break;
+			}
+			else if(input.equalsIgnoreCase("back"))
+			{
+				System.out.println("back matched");
+				choice = 0;
+				break;
+			}
 		}
 		System.out.println("0: Go back");
 		
 		//Get the input from doctor
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		try
+		//If user choose to go back
+		if(choice == 0)
 		{
-			int choice = Integer.parseInt(br.readLine());
+			//Set the medicine prescription in the consultation records of the patient
+			_clinic.setMedPres(pat, medChosen);
 			
-			//If user choose to go back
-			if(choice == 0)
-			{
-				//Set the medicine prescription in the consultation records of the patient
-				_clinic.setMedPres(pat, medChosen);
-				
-				//Add to dispense medicine queue so the nurse can prepare the medicine
-				_clinic.insertMedDispense(pat);
-				
-				//Return to select next patient for consultation
-				displayConsPat(pat);
-			}
+			//Add to dispense medicine queue so the nurse can prepare the medicine
+			_clinic.insertMedDispense(pat);
 			
-			//Add to medicine chosen list
-			medChosen.add(medList.get(choice-1).getName());
-			displayMedicine(pat, medChosen);
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
+			//Return to select next patient for consultation
+			//displayConsPat(pat);
+			//Update the consultation.txt
+			_clinic.appendToConsultationTxt(pat);			
+			return;
 		}
+		
+		//Add to medicine chosen list
+		medChosen.add(medList.get(choice-1).getName());
+		displayMedicine(pat, medChosen);
 		
 	}
 	
@@ -1032,7 +1119,8 @@ public class ADT {
 		int option = 0;
 		try 
 		{
-			option = Integer.parseInt(br.readLine());	
+			//option = Integer.parseInt(br.readLine());	
+			option = cur_options_q.poll();
 			
 			if(option == 0)
 			{
@@ -1046,13 +1134,16 @@ public class ADT {
 					//Add new medicine
 					//Ask user for the following information to add new medicine
 					System.out.println("Medicine name: ");
-					String name = br.readLine();
+					//String name = br.readLine();
+					String name = cur_input_q.poll();
 					
 					System.out.println("type (pill/liquid): ");
-					String type = br.readLine();
+					//String type = br.readLine();
+					String type = cur_input_q.poll();
 					
 					System.out.println("supplier: ");
-					String supplier = br.readLine();
+					//String supplier = br.readLine();
+					String supplier = cur_input_q.poll();
 					
 					
 					//check if input is integer
@@ -1061,7 +1152,8 @@ public class ADT {
 					do
 					{
 						System.out.print("stock:");
-						stockString = br.readLine();
+						//stockString = br.readLine();
+						stockString = cur_input_q.poll();
 						if(isInteger(stockString))
 						{
 							stock = Integer.parseInt(stockString);
@@ -1098,17 +1190,62 @@ public class ADT {
 						System.out.println("Supplier: " + med.getSupplier());
 						System.out.println("Stock: " + med.getStock());
 						System.out.println();
+						
+						//Test case 8-1 
+						//Check if medicine is successfully added to database
+						if(cur_name.equalsIgnoreCase("Test case 8-1"))
+						{
+							//Check for the just added medicine
+							if(med.getName().equalsIgnoreCase(cur_output))
+							{
+								//Matched, successful
+								cur_results = "Pass";
+								appendFile();
+								return;
+							}
+						}
+						
+						//Check for the med
+						//test case 1-1
+						//Check if medicine stock is successfully restocked
+						if(med.getName().equalsIgnoreCase(identifier))
+						{
+							//Check for the stock 
+							int output_stock = Integer.parseInt(cur_output);
+							if(med.getStock() == output_stock && check)
+							{
+								System.out.println("Pass");
+								cur_results = "Pass";
+								appendFile();
+								//return;
+							}
+							else if(med.getStock() != output_stock && check)
+							{
+								System.out.println("FAIL");
+								cur_results = "Fail,stock does not match expected stock output";
+								appendFile();
+								//return;
+							}
+						}
 					}
 					
-					displayMed();
+					
+					//displayMed();
 					break;
 									
 				case 3:
 					//Restock medicine
 					restockMenu();
 					
-					//Go back to Medicine menu page
+					if(cur_name.equalsIgnoreCase("Test case 7-1"))
+					{
+						return;
+					}
+					
 					displayMed();
+					
+					//Go back to Medicine menu page
+					//displayMed();
 					break;
 					
 				default: 
@@ -1125,9 +1262,6 @@ public class ADT {
 			System.err.println("Choose from option 0-3");
 			displayMed();
 		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	private static void restockMenu()
@@ -1139,16 +1273,53 @@ public class ADT {
 		//Display all medicine that are low on stock only
 		List<Medicine> medList = _clinic.checkLowStockMed();
 		Medicine med;
+		int option = 0;
 		
+		if(cur_name.equalsIgnoreCase("Test case 7-1"))
+		{
+			//Daily report test, if total med to be restocked is 5, success, else fail
+			if(medList.size() == Integer.parseInt(cur_output))
+			{
+				cur_results = "Pass";
+				appendFile();
+				return;
+			}
+			else
+			{
+				cur_results = "Fail, number of medicine to restock > 5";
+				appendFile();
+				return;
+			}
+		}
+		
+		identifier = cur_input_q.poll();
 		//Display on the screen
 		for(int i = 0; i < medList.size(); i++)
 		{			
 			med = medList.get(i);
+			
+			//Find the medicine according to the input medicine and set the appropriate option
+			if(med.getName().equalsIgnoreCase(identifier))
+			{
+				option = i+1;
+			}
+			
 			System.out.println(Integer.toString(i + 1)+ ". Name: " + med.getName());
 			System.out.println("   Type: " + med.getType());
 			System.out.println("   Supplier: " + med.getSupplier());
 			System.out.println("   Stock: " + med.getStock());
 			System.out.println();
+		}
+		
+		//if option still remains to be 0, it means that the medicine is not found in the database
+		//or no restock is available
+		if(option == 0)
+		{
+			cur_results = "Fail, " + identifier + " is not found on database or restock not needed";
+			appendFile();
+			//Set check variable to fail
+			check = false;
+			return;
 		}
 		
 		System.out.println("0: Go back");
@@ -1157,16 +1328,17 @@ public class ADT {
 		System.out.println("Please enter the medicine you wish to restock");
 		//Get choice from user
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		int option = 0;
+		
 		try 
 		{
-			option = Integer.parseInt(br.readLine());	
+			//option = Integer.parseInt(br.readLine());	
+			//option = cur_options_q.poll();
 			
-			if(option == 0)
-			{
-				//Go back to medicine main page
-				displayMed();
-			}
+//			if(option == 0)
+//			{
+//				//Go back to medicine main page
+//				displayMed();
+//			}
 						
 			//Get the medicine user has selected
 			if(medList.size() == 0)
@@ -1175,6 +1347,8 @@ public class ADT {
 				restockMenu();
 			}
 			Medicine restockMed = medList.get(option - 1);
+			
+			
 			
 			//Prompt user quantity to restock
 			System.out.println("Medicine: " + restockMed.getName());
@@ -1186,16 +1360,21 @@ public class ADT {
 			do
 			{
 				System.out.print("stock:");
-				stockString = br.readLine();
+				//identifier = cur_input_q.poll();
+				
+				//stockString = br.readLine();
+				stockString = cur_input_q.poll();
 				if(isInteger(stockString))
 				{
 					quantity = Integer.parseInt(stockString);
-					
+					System.out.print(quantity);
 					//Restock
 					_clinic.restockMed(restockMed, quantity);
 					System.out.println("Medicine: " + restockMed.getName() + " successfully restocked!");
-					restockMenu();
-					break;
+					//restockMenu();
+					//break;
+					//displayMed();
+					return;
 				}
 				else
 				{
@@ -1208,9 +1387,6 @@ public class ADT {
 		{
 			System.err.println("Choose from option 0-" + medList.size());
 			restockMenu();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
 		}
 		
 	}
@@ -1230,7 +1406,8 @@ public class ADT {
 		
 		try 
 		{
-			option = Integer.parseInt(br.readLine());	
+			//option = Integer.parseInt(br.readLine());	
+			option = cur_options_q.poll();
 			
 			if(option == 0)
 			{
@@ -1245,7 +1422,9 @@ public class ADT {
 					//Get word that user wants to search
 					System.out.println("Enter word you wish to search under illness description of patients' consultation records: ");
 					
-					String word = br.readLine();
+					//String word = br.readLine();
+					String word = cur_input_q.poll();
+					identifier = word;
 					Patient pat;
 					
 					List<Consultation> consList;
@@ -1258,7 +1437,11 @@ public class ADT {
 					if(patList.size() == 0)
 					{
 						System.out.println("No match found");
-						searchMenu();
+						cur_results = "Fail, no match found";
+						appendFile();
+						return;
+						//searchMenu();
+						
 					}
 					
 					for(int i = 0; i < patList.size(); i++)
@@ -1280,7 +1463,12 @@ public class ADT {
 							cons = consList.get(j);
 							System.out.println("Consultation date: " + cons.getDate());
 							System.out.println("Illness description: " + cons.getIllnessDes());
-							
+							if(cons.getNRIC().equalsIgnoreCase(cur_output) && cons.getIllnessDes().equalsIgnoreCase(identifier))
+							{
+								cur_results = "Pass";
+								appendFile();
+								break;
+							}
 							System.out.println("Medicine prescribed: ");
 							
 							//List of medicine prescribed
@@ -1296,7 +1484,7 @@ public class ADT {
 							System.out.println();
 						}
 					}
-					searchMenu();
+					//searchMenu();
 					break;
 				case 2:
 					//Search for medication prescribed to patient in consultation records
@@ -1369,12 +1557,42 @@ public class ADT {
 		}
 	}
 	
+	//Append new patient record to existing patients.txt
+	private static void appendFile()
+	{
+		try 
+		{
+			//Notice the second parameter "true"
+			//This is needed to ensure the filewriter is in APPEND mode
+			FileWriter out = new FileWriter("adt_results.txt",true);
+			BufferedWriter bw = new BufferedWriter(out);
+			
+			//Write a newline first
+			//bw.newLine();
+			//bw.newLine();
+			
+			//Next, write all the information of the new patient		
+			bw.write(cur_name);
+			bw.newLine();
+			bw.write(cur_results);
+			bw.newLine();
+			
+				
+			bw.close();
+			
+		} 
+		catch (IOException e) 
+		{		
+			e.printStackTrace();
+		}
+		
+	}
 	
 	//********************************************************************Main************************************************************************//
 	public static void main(String args[])
 	{
 		ADT adt = new ADT();
-		adt.displaySelectUser();	
+		//adt.displaySelectUser();	
 
 	}
 	

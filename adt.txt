@@ -1,4 +1,70 @@
-Use case 1
+Test case 1-1
+2;3;3;2
+Cough syrup;10
+10
+
+Test case 1-2
+2;3;3;2
+Cough syrup2;10
+10
+
+Test case 1-3
+2;3;3;2
+Prospan Cough Syrup;10
+10
+
+Test case 2-1
+2;1;1;2
+Name;NRIC;DOB;Gender;Address;1234;NRIC
+Name;NRIC;DOB Gender;Address;1234
+
+Test case 2-2
+2;1;1;2
+Name;NRIC;DOB;Gender;Address;1234;NRIC
+Name;NRIC;DOB Gender;Address;1234
+
+Test case 3-1
+2;1;3;3;2
+NRIC;DOB2;NRIC
+DOB2
+
+Test case 4-1
+2;2;1;1;1;3;
+NRIC;Amoxicillin;back
+Nil
+
+Test case 4-2
+2;2;1;1;1;3;
+NRIC2;Amoxicillin;back
+Nil
+
+Test case 5-1
 2;4;1
 Fever
-ALFIAN BIN HAMZAH
+S6974052B
+
+Test case 5-2
+2;4;1
+Fever2
+S6974052B
+
+Test case 6-1
+2;2;6
+Nil
+Amoxicillin
+
+Test case 6-2
+2;2;6
+Nil
+Amoxicillin
+
+Test case 7-1
+2;3;3
+Nil
+5
+
+Test case 8-1
+2;3;1;2
+Panadol2;Pill;ASTRA ZENECA PTE LTD;99
+Panadol2
+
